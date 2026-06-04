@@ -1,0 +1,825 @@
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMOLED Anime Tracker - Ultimate Edition Pro</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <style>
+        /* Pure AMOLED Black Theme to minimize panel power draw */
+        body {
+            background-color: #000000;
+            color: #f8fafc;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 16px;
+            padding-bottom: 40px;
+        }
+
+        h2, h3 {
+            color: #38bdf8;
+            margin-top: 0;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .date {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .controls {
+            margin-bottom: 24px;
+        }
+
+        .search-bar {
+            width: 100%;
+            box-sizing: border-box;
+            background-color: #111111;
+            border: 1px solid #222222;
+            color: #f8fafc;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 15px;
+            margin-bottom: 12px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-bar:focus {
+            border-color: #38bdf8;
+        }
+
+        .filter-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .filter-btn {
+            background-color: #111111;
+            border: 1px solid #222222;
+            color: #94a3b8;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .filter-btn.active,
+        .filter-btn:hover {
+            background-color: #38bdf8;
+            color: #000000;
+            border-color: #38bdf8;
+        }
+
+        .dropdown-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .dropdown {
+            background-color: #111111;
+            border: 1px solid #222222;
+            color: #94a3b8;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s;
+        }
+        .dropdown:focus,
+        .dropdown:hover {
+            border-color: #38bdf8;
+            color: #ffffff;
+        }
+
+        .pinned-section {
+            background-color: #050b14;
+            border: 1px dashed #38bdf8;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 24px;
+        }
+        .pinned-title {
+            font-size: 13px;
+            color: #f59e0b;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .card {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 14px;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+        .card:hover {
+            border-color: #334155;
+            background: #050505;
+        }
+
+        .card-main-content {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            width: 100%;
+        }
+
+        .poster-box {
+            width: 75px;
+            height: 105px;
+            background-color: #111111;
+            border-radius: 8px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 1px solid #222222;
+        }
+        .poster-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            image-rendering: -webkit-optimize-contrast;
+        }
+
+        .card-details {
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .title {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 4px;
+            color: #ffffff;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .bookmark-btn {
+            background: none;
+            border: none;
+            color: #475569;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0 4px;
+            line-height: 1;
+            transition: color 0.2s, transform 0.1s;
+        }
+        .bookmark-btn:hover {
+            transform: scale(1.15);
+        }
+        .bookmark-btn.active {
+            color: #f59e0b;
+        }
+
+        .info {
+            color: #94a3b8;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .bottom-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .platform {
+            background: #1e293b;
+            color: #cbd5e1;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .platform.crunchyroll { background-color: #c2410c; color: #fff; }
+        .platform.netflix { background-color: #b91c1c; color: #fff; }
+        .platform.streaming { background-color: #0284c7; color: #fff; }
+        .platform.finished { background-color: #334155; color: #cbd5e1; }
+        .platform.unreleased { background-color: #7c2d12; color: #ffedd5; }
+
+        .timer {
+            font-family: monospace;
+            font-size: 12px;
+            font-weight: 700;
+            color: #10b981;
+            background-color: #064e3b;
+            padding: 4px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        .timer.milestone {
+            color: #f59e0b;
+            background-color: #78350f;
+        }
+        .timer.finished-badge {
+            color: #94a3b8;
+            background-color: #1e293b;
+        }
+
+        .expanded-info {
+            display: none;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed #222222;
+            animation: fadeIn 0.25s ease-out;
+        }
+        .expanded-info.active {
+            display: block;
+        }
+
+        .meta-line {
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: #cbd5e1;
+        }
+        .meta-label {
+            color: #64748b;
+            font-weight: 600;
+            margin-right: 4px;
+        }
+
+        /* Source name badge (non-clickable) */
+        .source-badge {
+            display: inline-block;
+            background-color: #111111;
+            border: 1px solid #334155;
+            color: #38bdf8;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 6px;
+            margin-top: 2px;
+        }
+
+        .tracker-control-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background-color: #111111;
+            border: 1px solid #222222;
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+
+        .micro-counter-btn {
+            background-color: #222222;
+            border: none;
+            color: #ffffff;
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .micro-counter-btn:hover {
+            background-color: #38bdf8;
+            color: #000000;
+        }
+
+        .progress-indicator {
+            font-weight: 700;
+            color: #f59e0b;
+            min-width: 40px;
+            text-align: center;
+            font-family: monospace;
+        }
+
+        .genre-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .genre-badge {
+            background-color: #111111;
+            border: 1px solid #222222;
+            color: #38bdf8;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .episode-input {
+            width: 45px;
+            background-color: #000;
+            border: 1px solid #334155;
+            color: #f59e0b;
+            font-family: monospace;
+            font-weight: 700;
+            text-align: center;
+            padding: 2px 4px;
+            border-radius: 4px;
+            outline: none;
+        }
+        .episode-input:focus {
+            border-color: #38bdf8;
+        }
+
+        .set-ep-btn {
+            background-color: #222222;
+            border: none;
+            color: #ffffff;
+            height: 22px;
+            padding: 0 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .set-ep-btn:hover {
+            background-color: #38bdf8;
+            color: #000;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <h2>Anime Pulse</h2>
+    <div class="date" id="display-date">Loading...</div>
+
+    <div class="controls">
+        <input type="text" id="search" class="search-bar" placeholder="Search any anime…" oninput="filterAnime()">
+        <div class="filter-container">
+            <div class="filter-group">
+                <button class="filter-btn active" id="btn-all" onclick="filterPlatform('all', this)">All Feeds</button>
+                <button class="filter-btn" onclick="filterPlatform('crunchyroll', this)">Crunchyroll</button>
+                <button class="filter-btn" onclick="filterPlatform('netflix', this)">Netflix</button>
+                <button class="filter-btn" style="border-color: #f59e0b; color: #f59e0b;" onclick="filterPlatform('watchlist', this)">★ My Watchlist</button>
+            </div>
+            <div class="dropdown-group">
+                <select id="sort-select" class="dropdown" onchange="handleSortChange(this.value)">
+                    <option value="TRENDING_DESC">Trending</option>
+                    <option value="POPULARITY_DESC">Most Popular</option>
+                    <option value="SCORE_DESC">Highest Rated</option>
+                    <option value="START_DATE_DESC">Newest Releases</option>
+                </select>
+                <select id="format-select" class="dropdown" onchange="handleFormatChange(this.value)">
+                    <option value="all">All Formats</option>
+                    <option value="TV">TV Series</option>
+                    <option value="MOVIE">Theatrical Movies</option>
+                    <option value="OVA">OVA / Specials</option>
+                </select>
+                <select id="genre-select" class="dropdown" onchange="handleGenreChange(this.value)">
+                    <option value="all">All Genres</option>
+                    <option value="Action">Action</option>
+                    <option value="Adventure">Adventure</option>
+                    <option value="Comedy">Comedy</option>
+                    <option value="Drama">Drama</option>
+                    <option value="Fantasy">Fantasy</option>
+                    <option value="Horror">Horror</option>
+                    <option value="Mystery">Mystery</option>
+                    <option value="Psychological">Psychological</option>
+                    <option value="Romance">Romance</option>
+                    <option value="Sci-Fi">Sci-Fi</option>
+                    <option value="Slice of Life">Slice of Life</option>
+                    <option value="Supernatural">Supernatural</option>
+                    <option value="Thriller">Thriller</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="pinned-section" id="pinned-area">
+        <div class="pinned-title">📌 Pinned Watchlist Milestones</div>
+        <div id="pinned-target"></div>
+    </div>
+
+    <h3 id="feed-title">Trending Broadcast Feed</h3>
+    <div id="anime-list"></div>
+
+    <script>
+        // ---------- STATE ----------
+        let currentPlatformFilter = 'all';
+        let currentGenreFilter = 'all';
+        let currentFormatFilter = 'all';
+        let currentSortSetting = 'TRENDING_DESC';
+        let searchQuery = '';
+        let debounceTimer;
+        let cachedMediaList = [];
+        let watchlistArray = JSON.parse(localStorage.getItem('anime_watchlist_pulse')) || [];
+
+        // ---------- DATE ----------
+        const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        const now = new Date();
+        document.getElementById("display-date").innerText =
+            `${days[now.getDay()]} – ${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+
+        // ---------- API ----------
+        async function fetchAnimeData() {
+            let query = `
+            query ($page: Int, $search: String, $sort: [MediaSort], $format: MediaFormat, $genre: String) {
+                Page(page: $page, perPage: 40) {
+                    media(search: $search, sort: $sort, format: $format, genre: $genre, type: ANIME) {
+                        id
+                        title { romaji english native }
+                        description(asHtml: false)
+                        coverImage { large }
+                        status
+                        episodes
+                        duration
+                        averageScore
+                        popularity
+                        startDate { year month day }
+                        endDate { year month day }
+                        nextAiringEpisode { airingAt episode }
+                        studios { nodes { name } }
+                        externalLinks { url site }
+                        genres
+                        format
+                        isAdult
+                    }
+                }
+            }`;
+
+            let variables = {
+                page: 1,
+                search: searchQuery || undefined,
+                sort: [currentSortSetting],
+                format: currentFormatFilter !== 'all' ? currentFormatFilter : undefined,
+                genre: currentGenreFilter !== 'all' ? currentGenreFilter : undefined
+            };
+
+            try {
+                const res = await fetch('https://graphql.anilist.co', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({ query, variables })
+                });
+                const json = await res.json();
+                cachedMediaList = json.data.Page.media;
+            } catch (err) {
+                console.error('Fetch error:', err);
+                cachedMediaList = [];
+            }
+        }
+
+        // ---------- Helper: decode HTML entities ----------
+        function decodeHTMLEntities(text) {
+            const txt = document.createElement('textarea');
+            txt.innerHTML = text;
+            return txt.value;
+        }
+
+        // ---------- Source definitions (no redirects, just names) ----------
+        const officialSources = [
+            { name: 'Netflix', siteKey: 'netflix' },
+            { name: 'Amazon Prime', siteKey: 'amazon' },
+            { name: 'Hotstar', siteKey: 'hotstar' },
+            { name: 'Crunchyroll', siteKey: 'crunchyroll' }
+        ];
+
+        const unofficialSourceNames = ['AnimeKai', 'AnimePahe'];
+
+        const adultSourceNames = ['Hanime.tv', 'Hstream.moe', 'HentaiMama'];
+
+        // ---------- RENDER ----------
+        function renderMediaList() {
+            const container = document.getElementById("anime-list");
+            let list = [...cachedMediaList];
+
+            if (currentPlatformFilter === 'watchlist') {
+                const watchIds = watchlistArray.map(i => String(i.id));
+                list = list.filter(m => watchIds.includes(String(m.id)));
+            } else if (currentPlatformFilter !== 'all') {
+                list = list.filter(m => {
+                    let platform = 'streaming';
+                    if (m.externalLinks && m.externalLinks.length) {
+                        const sites = m.externalLinks.map(l => l.site.toLowerCase());
+                        if (sites.includes('crunchyroll')) platform = 'crunchyroll';
+                        else if (sites.includes('netflix')) platform = 'netflix';
+                    }
+                    if (m.status === 'FINISHED') platform = 'finished';
+                    else if (m.status === 'NOT_YET_RELEASED') platform = 'unreleased';
+                    return platform === currentPlatformFilter;
+                });
+            }
+
+            if (currentPlatformFilter === 'watchlist') {
+                const idOrder = watchlistArray.map(i => String(i.id));
+                list.sort((a,b) => idOrder.indexOf(String(a.id)) - idOrder.indexOf(String(b.id)));
+            }
+
+            let html = '';
+            if (list.length === 0) {
+                html = '<div style="color:#64748b; padding:16px; text-align:center;">No results match your filters.</div>';
+            }
+
+            list.forEach(media => {
+                const cleanTitle = media.title.english || media.title.romaji || media.title.native || 'Untitled';
+                const studio = media.studios?.nodes?.[0]?.name || 'Unknown Studio';
+                const totalEps = media.episodes ?? '?';
+                const score = media.averageScore ? `${media.averageScore}%` : 'N/A';
+                const startStr = media.startDate.year
+                    ? `${media.startDate.year}-${String(media.startDate.month).padStart(2,'0')}-${String(media.startDate.day).padStart(2,'0')}`
+                    : 'TBA';
+                const endStr = media.endDate.year
+                    ? `${media.endDate.year}-${String(media.endDate.month).padStart(2,'0')}-${String(media.endDate.day).padStart(2,'0')}`
+                    : 'Ongoing';
+                const rawDesc = media.description ? media.description.replace(/<[^>]*>/g, '') : 'No description available.';
+                const cleanDesc = decodeHTMLEntities(rawDesc);
+
+                const saved = watchlistArray.find(i => String(i.id) === String(media.id));
+                const progress = saved?.userProgress ?? 0;
+
+                let platform = 'streaming';
+                if (media.externalLinks?.length) {
+                    const sites = media.externalLinks.map(l => l.site.toLowerCase());
+                    if (sites.includes('crunchyroll')) platform = 'crunchyroll';
+                    else if (sites.includes('netflix')) platform = 'netflix';
+                }
+                if (media.status === 'FINISHED') platform = 'finished';
+                else if (media.status === 'NOT_YET_RELEASED') platform = 'unreleased';
+
+                // Build source badges (no links)
+                let sourceBadgesHtml = '';
+                if (media.isAdult) {
+                    sourceBadgesHtml = adultSourceNames.map(name => `<span class="source-badge">${name}</span>`).join('');
+                } else {
+                    const officialBadges = [];
+                    officialSources.forEach(src => {
+                        const matchingLink = media.externalLinks?.find(link =>
+                            link.site.toLowerCase().includes(src.siteKey)
+                        );
+                        if (matchingLink) {
+                            officialBadges.push(`<span class="source-badge">${src.name}</span>`);
+                        }
+                    });
+                    const unofficialBadges = unofficialSourceNames.map(name => `<span class="source-badge">${name}</span>`);
+                    sourceBadgesHtml = [...officialBadges, ...unofficialBadges].join('') || '<span>No streaming info</span>';
+                }
+
+                let nextEpInfo = '';
+                if (media.nextAiringEpisode) {
+                    nextEpInfo = `<span style="color:#f59e0b; font-size:12px;">▶ Next: Ep ${media.nextAiringEpisode.episode}</span> `;
+                }
+
+                let timerHtml = '';
+                if (media.status === 'FINISHED') {
+                    timerHtml = '<span class="timer finished-badge">✓ COMPLETE</span>';
+                } else if (media.nextAiringEpisode?.airingAt) {
+                    timerHtml = `<span class="timer" data-airing-at="${media.nextAiringEpisode.airingAt}">Counting...</span>`;
+                } else if (media.status === 'NOT_YET_RELEASED' && media.startDate.year) {
+                    const dateStr = `${media.startDate.year}-${String(media.startDate.month).padStart(2,'0')}-${String(media.startDate.day).padStart(2,'0')}T00:00:00`;
+                    timerHtml = `<span class="timer milestone" data-target-date="${dateStr}">Upcoming</span>`;
+                }
+
+                const isBookmarked = watchlistArray.some(i => String(i.id) === String(media.id));
+                const bookmarkClass = isBookmarked ? 'active' : '';
+                const genreTags = (media.genres || []).slice(0,5).map(g => `<span class="genre-badge">${g}</span>`).join('');
+
+                const episodeControlHtml = `
+                <div class="tracker-control-group">
+                    <button class="micro-counter-btn" onclick="event.stopPropagation(); updateProgress('${media.id}', -1)">–</button>
+                    <input type="number" class="episode-input" id="epinput-${media.id}" value="${progress}" min="0" max="${typeof totalEps === 'number' ? totalEps : ''}" onclick="event.stopPropagation();" onkeydown="if(event.key==='Enter'){ event.preventDefault(); setProgressFromInput('${media.id}'); }">
+                    <span style="color:#94a3b8; font-size:12px;">/ ${totalEps}</span>
+                    <button class="micro-counter-btn" onclick="event.stopPropagation(); updateProgress('${media.id}', 1)">+</button>
+                    <button class="set-ep-btn" onclick="event.stopPropagation(); setProgressFromInput('${media.id}')">Set</button>
+                </div>`;
+
+                html += `
+                <div class="card" onclick="toggleExpand(this)">
+                    <div class="card-main-content">
+                        <div class="poster-box">
+                            <img src="${media.coverImage?.large || ''}" alt="poster" loading="lazy">
+                        </div>
+                        <div class="card-details">
+                            <div class="title-row">
+                                <div class="title">${cleanTitle}</div>
+                                <button class="bookmark-btn ${bookmarkClass}" onclick="event.stopPropagation(); toggleBookmark('${media.id}', this)">★</button>
+                            </div>
+                            <div class="info">${studio} · ${totalEps} eps · Rating: ${score}</div>
+                            <div class="bottom-row">
+                                <span class="platform ${platform}">${platform}</span>
+                                ${timerHtml} ${nextEpInfo}
+                            </div>
+                            <div class="genre-container">${genreTags}</div>
+                        </div>
+                    </div>
+                    <div class="expanded-info">
+                        <div class="meta-line"><span class="meta-label">Airing:</span> ${startStr} → ${endStr}</div>
+                        <div class="meta-line"><span class="meta-label">Synopsis:</span> ${cleanDesc}</div>
+                        <div class="meta-line"><span class="meta-label">Watch:</span> ${sourceBadgesHtml}</div>
+                        ${episodeControlHtml}
+                    </div>
+                </div>`;
+            });
+
+            container.innerHTML = html;
+            updateTimers();
+        }
+
+        // ---------- EXPAND ----------
+        function toggleExpand(card) {
+            const exp = card.querySelector('.expanded-info');
+            if (exp) exp.classList.toggle('active');
+        }
+
+        // ---------- BOOKMARK & PROGRESS ----------
+        function toggleBookmark(idStr, btn) {
+            const idx = watchlistArray.findIndex(i => String(i.id) === idStr);
+            if (idx >= 0) {
+                watchlistArray.splice(idx, 1);
+                btn.classList.remove('active');
+            } else {
+                watchlistArray.push({ id: idStr, userProgress: 0 });
+                btn.classList.add('active');
+            }
+            localStorage.setItem('anime_watchlist_pulse', JSON.stringify(watchlistArray));
+            renderMediaList();
+        }
+
+        function updateProgress(idStr, delta) {
+            const item = watchlistArray.find(i => String(i.id) === idStr);
+            if (!item) {
+                watchlistArray.push({ id: idStr, userProgress: Math.max(0, delta) });
+            } else {
+                item.userProgress = Math.max(0, (item.userProgress || 0) + delta);
+            }
+            localStorage.setItem('anime_watchlist_pulse', JSON.stringify(watchlistArray));
+            renderMediaList();
+        }
+
+        function setProgressFromInput(mediaId) {
+            const input = document.getElementById(`epinput-${mediaId}`);
+            if (!input) return;
+            let val = parseInt(input.value, 10);
+            if (isNaN(val)) return;
+            const media = cachedMediaList.find(m => String(m.id) === String(mediaId));
+            const max = media?.episodes;
+            if (typeof max === 'number') val = Math.min(max, Math.max(0, val));
+            else val = Math.max(0, val);
+
+            const item = watchlistArray.find(i => String(i.id) === String(mediaId));
+            if (!item) {
+                watchlistArray.push({ id: String(mediaId), userProgress: val });
+            } else {
+                item.userProgress = val;
+            }
+            localStorage.setItem('anime_watchlist_pulse', JSON.stringify(watchlistArray));
+            renderMediaList();
+        }
+
+        // ---------- FILTERS & SORT ----------
+        function filterPlatform(platform, btn) {
+            currentPlatformFilter = platform;
+            document.querySelectorAll('.filter-group .filter-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            else document.getElementById('btn-all').classList.add('active');
+            triggerFetch();
+        }
+
+        function handleSortChange(val) {
+            currentSortSetting = val;
+            triggerFetch();
+        }
+
+        function handleFormatChange(val) {
+            currentFormatFilter = val === 'all' ? 'all' : val;
+            triggerFetch();
+        }
+
+        function handleGenreChange(val) {
+            currentGenreFilter = val;
+            triggerFetch();
+        }
+
+        function filterAnime() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                searchQuery = document.getElementById('search').value.trim();
+                triggerFetch();
+            }, 400);
+        }
+
+        async function triggerFetch() {
+            document.getElementById('anime-list').innerHTML = '<div style="color:#64748b; padding:16px; text-align:center;">Loading…</div>';
+            await fetchAnimeData();
+            renderMediaList();
+            updatePinned();
+        }
+
+        // ---------- TIMER UPDATES ----------
+        function updateTimers() {
+            document.querySelectorAll('.timer[data-airing-at]').forEach(el => {
+                const ts = parseInt(el.dataset.airingAt) * 1000;
+                const diff = ts - Date.now();
+                if (diff <= 0) {
+                    el.textContent = 'Now airing';
+                    el.classList.add('finished-badge');
+                } else {
+                    const d = Math.floor(diff / 86400000);
+                    const h = Math.floor((diff % 86400000) / 3600000);
+                    const m = Math.floor((diff % 3600000) / 60000);
+                    const s = Math.floor((diff % 60000) / 1000);
+                    el.textContent = `${d}d ${h}h ${m}m ${s}s`;
+                }
+            });
+
+            document.querySelectorAll('.timer.milestone[data-target-date]').forEach(el => {
+                const target = new Date(el.dataset.targetDate).getTime();
+                const diff = target - Date.now();
+                if (diff <= 0) {
+                    el.textContent = 'Released';
+                    el.classList.add('finished-badge');
+                } else {
+                    const d = Math.floor(diff / 86400000);
+                    const h = Math.floor((diff % 86400000) / 3600000);
+                    const m = Math.floor((diff % 3600000) / 60000);
+                    const s = Math.floor((diff % 60000) / 1000);
+                    el.textContent = `${d}d ${h}h ${m}m ${s}s`;
+                }
+            });
+        }
+        setInterval(updateTimers, 1000);
+
+        // ---------- PINNED (no pin emoji, just title) ----------
+        function updatePinned() {
+            const target = document.getElementById('pinned-target');
+            const pinnedItems = watchlistArray.slice(0,3);
+            if (!pinnedItems.length) {
+                target.innerHTML = '<div style="color:#64748b; font-size:13px;">No milestones pinned yet. Add anime to your watchlist.</div>';
+                return;
+            }
+            const pinnedIds = pinnedItems.map(i => i.id);
+            const pinnedMedia = cachedMediaList.filter(m => pinnedIds.includes(String(m.id)));
+            target.innerHTML = pinnedMedia.map(m => {
+                const title = m.title.english || m.title.romaji || m.title.native;
+                const img = m.coverImage?.large || '';
+                return `
+                <div style="display:flex; align-items:center; justify-content:space-between; font-size:13px; padding:4px 0;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <img src="${img}" style="width:30px; height:42px; object-fit:cover; border-radius:4px; border:1px solid #222;">
+                        <span>${title}</span>
+                    </div>
+                    <span style="color:#f59e0b;">Ep ${watchlistArray.find(w=>String(w.id)==String(m.id))?.userProgress||0}/${m.episodes||'?'}</span>
+                </div>`;
+            }).join('');
+        }
+
+        // ---------- INIT ----------
+        triggerFetch();
+        updatePinned();
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js');
+        }
+    </script>
+</body>
+</html>
