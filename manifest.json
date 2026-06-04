@@ -2,7 +2,7 @@
 {
   "name": "Anime Pulse",
   "short_name": "AnimePulse",
-  "start_url": ".",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
@@ -17,5 +17,16 @@
       "sizes": "512x512",
       "type": "image/png"
     }
+  ],
+  "lang": "en",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone"
+  ],
+  "dir": "ltr",
+  "scope": "https://roronoa123zoro.github.io/anime-pulse/",
+  "orientation": "any",
+  "categories": [
+    "entertainment"
   ]
 }
